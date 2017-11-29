@@ -4,7 +4,7 @@
 START=95
 STOP=10
 
-BIN=/usr/sbin/mysqld_sh
+BIN=/usr/bin/mysqld_sv
 USE_PROCD=1
 
 start_service(){

@@ -199,6 +199,7 @@ define Package/mariadb-server/install
 	$(INSTALL_DIR) $(1)/usr/bin $(1)/usr/share/mysql $(1)/usr/share/mysql/english $(1)/usr/lib/mysql $(1)/etc/mysql $(1)/etc/mysql/conf.d $(1)/etc/init.d
 	$(CP) $(PKG_INSTALL_DIR)/usr/bin/mysqld $(1)/usr/bin/mysqld
 	$(INSTALL_BIN) files/mariadb.init $(1)/etc/init.d/mariadb
+	$(INSTALL_BIN) files/mysqld_sh.init $(1)/usr/sbin/mysqld_sh
 	# these two need perl and should go into their own package which depends on perl + dbi + ?
 	$(INSTALL_CONF) files/my.cnf $(1)/etc/mysql/
 	$(INSTALL_CONF) files/conf.d/* $(1)/etc/mysql/conf.d/

@@ -4,54 +4,17 @@
 START=95
 STOP=10
 
-SERVICE_DAEMONIZE=1
-SERVICE_WRITE_PID=1
-SERVICE_STOP_TIME=9
+BIN=/usr/sbin/mysqld_sh
+USE_PROCD=1
 
-DATA="/data/mysql"
-DATA_TMP="/data/mysql-tmp/"
-
-error() {
-    echo "${initscript}:" "$@" 1>&2
+start_service(){
+	procd_open_instance
+	procd_set_param command $BIN start
+	procd_set_param respawn ${respawn_threshold:-3600} ${respawn_timeout:-50} ${respawn_retry:-6}
+	procd_close_instance
 }
 
-init_command_msg="run mysql_install_db --force --basedir=/usr to initialize the system tables"
-
-missing_dir=0
-
-missing_dir_error() {
-    error "Error: $1 '$2' in /etc/mysql/my.cnf doesn't exist."
-    error "       Make sure that a file system is mounted at this location or you have created the directory"
-    error "       and then $init_command_msg."
+stop_service(){
+	$BIN stop
 }
 
-check_dir_in_my_cnf() {
-    local dir=$(sed -n -e "s/^[[:space:]]*$1[[:space:]]*=[[:space:]\"']*\([^[:space:]\"']*\)[[:space:]\"']*/\1/p" /etc/mysql/my.cnf)
-    if [ ! -d "$dir" ]; then
-	missing_dir_error $1 $dir
-	missing_dir=1
-    fi
-}
-
-start() {
-    [ -d $DATA ] || mkdir -p $DATA
-    [ -d $DATA_TMP ] || mkdir -p $DATA_TMP
-    rm -rf /var/lib/mysql || true
-    ln -s $DATA /var/lib/mysql || true
-    check_dir_in_my_cnf datadir
-    check_dir_in_my_cnf tmpdir
-    if [ $missing_dir == 1 ] ; then
-	return 1
-    fi
-    local datadir=$(sed -n -e "s/^[[:space:]]*datadir[[:space:]]*=[[:space:]\"']*\([^[:space:]\"']*\)[[:space:]\"']*/\1/p" /etc/mysql/my.cnf)
-    if [ ! -f "$datadir/mysql/tables_priv.MYD" ]; then
-#	error "Error: I didn't detect a privileges table, you might need to $init_command_msg"
-#	return 1
-	mysql_install_db --basedir=/usr --ldata=/data/mysql --user=root --verbose
-    fi
-    service_start /usr/bin/mysqld
-}
-
-stop() {
-    service_stop /usr/bin/mysqld
-}
